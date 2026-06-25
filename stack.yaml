@@ -1,6 +1,15 @@
-snapshot:
-  url: https://raw.githubusercontent.com/commercialhaskell/stackage-snapshots/master/lts/24/38.yaml
+resolver: lts-16.31
+system-ghc: true
 
 packages:
 - .
+
+extra-deps:
+- llvm-hs-9.0.1
+- llvm-hs-pure-9.0.0
+- llvm-hs-pretty-0.9.0.0
+
+flags:
+  llvm-hs:
+    shared-llvm: true
 

@@ -1,4 +1,4 @@
-# Changelog for `taseku-dsl`
+# Changelog for `kat`
 
 All notable changes to this project will be documented in this file.
 
