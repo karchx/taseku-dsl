@@ -1,7 +1,4 @@
-module AST 
-    ( Expr(..)
-    , Op(..)
-    ) where
+module AST (Expr(..)) where
 
 type Name = String
 
@@ -12,11 +9,5 @@ data Expr
     | Call Name [Expr]
     | Function Name [Expr] Expr
     | Extern Name [Expr]
+    | UnaryOp Name Expr
     deriving (Eq, Ord, Show)
-
-data Op
-    = Plus
-    | Minus
-    | Times
-    | Divide
-    deriving(Eq, Ord, Show)

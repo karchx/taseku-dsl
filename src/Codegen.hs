@@ -206,14 +206,14 @@ uniqueName nm ns =
         Nothing -> (nm, Map.insert nm 1 ns)
         Just ix -> (nm ++ show ix, Map.insert nm (ix+1) ns)
 
--- instance IsString Name where
---     fromString = Name . fromString
-
 local :: Name -> Operand
 local = LocalReference double
 
-externf :: Name -> Operand
-externf = ConstantOperand . C.GlobalReference double
+externf :: Name -> [Type] -> Operand
+externf name argTypes =
+    let funcType = FunctionType double argTypes False
+        ptrType  = PointerType funcType (AddrSpace 0)
+    in ConstantOperand $ C.GlobalReference ptrType name
 
 assign :: String -> Operand -> Codegen ()
 assign var x = do
@@ -297,3 +297,4 @@ cbr cond tr fl = terminator $ Do $ CondBr cond tr fl []
 
 ret :: Operand -> Codegen (Named Terminator)
 ret val = terminator $ Do $ Ret (Just val) []
+

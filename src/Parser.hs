@@ -58,11 +58,9 @@ call = do
 factor :: Parser Expr
 factor = try floating
       <|> try int
-      <|> try extern
-      <|> try function
       <|> try call
-      <|> variable
-      <|> parens expr
+      <|> try variable
+      <|> (parens expr)
 
 fn :: Parser Expr
 fn = try extern

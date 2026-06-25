@@ -64,7 +64,8 @@ cgen (S.Float n) = return $ cons $ C.Float (F.Double n)
 cgen(S.Var x) = getVar x >>= load
 cgen(S.Call fn args) = do
     largs <- mapM cgen args
-    call (externf (AST.Name (fromString fn))) largs
+    let argTypes = replicate (length args) double
+    call (externf (AST.Name (fromString fn)) argTypes) largs
 cgen (S.BinOp  op a b) = do
     case Map.lookup op binops of
         Just f -> do
