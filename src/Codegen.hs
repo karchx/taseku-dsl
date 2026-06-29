@@ -45,6 +45,7 @@ import Control.Monad.State
 import Control.Applicative
 
 import LLVM.AST.AddrSpace (AddrSpace(..))
+import qualified LLVM.AST.Linkage as L
 import qualified LLVM.AST as AST
 import qualified LLVM.AST.Constant as C
 import qualified LLVM.AST.FloatingPointPredicate as F
@@ -97,6 +98,7 @@ external :: Type -> SBS.ShortByteString -> [(Type, Name)] -> LLVM ()
 external retty  label argtys = addDefn $
     GlobalDefinition $ functionDefaults {
       name        = Name label
+    , linkage     = L.External
     , parameters  = ([Parameter ty nm [] | (ty, nm) <- argtys], False)
     , returnType  = retty
     , basicBlocks = []
@@ -230,10 +232,10 @@ getVar var = do
 instr :: Instruction -> Codegen Operand
 instr ins = do
     n <- fresh
+    let ref = (UnName n)
     blk <- current
     let i = stack blk
-    let ref = (UnName n)
-    modifyBlock $ blk { stack = i ++ [ref := ins] }
+    modifyBlock (blk { stack = (ref := ins) : i })
     return $ local ref
 
 terminator :: Named Terminator -> Codegen (Named Terminator)
