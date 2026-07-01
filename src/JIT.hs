@@ -15,8 +15,6 @@ import LLVM.AST
 import qualified LLVM.AST as AST
 
 import LLVM.PassManager
-import LLVM.Transforms
-import LLVM.Analysis
 
 passes :: PassSetSpec
 passes = defaultCuratedPassSetSpec { optLevel = Just 3 }
@@ -24,10 +22,10 @@ passes = defaultCuratedPassSetSpec { optLevel = Just 3 }
 runJIT :: AST.Module -> IO (Either String AST.Module)
 runJIT mod = runExceptT $ do
     liftIO $ withContext $ \context ->
-        withModuleFromAST context mod $ \m ->
+        withModuleFromAST context mod $ \m -> do
             withPassManager passes $ \pm -> do
                 runPassManager pm m
                 optmod <- moduleAST m
                 s <- moduleLLVMAssembly m
-                putStrLn (BS.unpack s)
+                BS.putStrLn s
                 return optmod

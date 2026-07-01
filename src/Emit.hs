@@ -19,6 +19,7 @@ import qualified LLVM.AST.FloatingPointPredicate as FP
 import qualified Data.Map as Map
 
 import Codegen
+import JIT
 import qualified AST as S
 
 getArgName :: S.Expr -> String
@@ -88,12 +89,12 @@ binops = Map.fromList [
     ]
 
 codegen :: AST.Module -> [S.Expr] -> IO AST.Module
-codegen mod fns = withContext $ \context ->
-    withModuleFromAST context newast $ \m -> do
-        llstr <- moduleLLVMAssembly m
-        BS.putStrLn llstr
-        return newast
+codegen mod fns = do
+    res <- runJIT oldast
+    case res of
+        Right newast -> return newast
+        Left err     -> putStrLn err >> return oldast
     where
-        modn = mapM codegenTop fns
-        newast = runLLVM mod modn
+        modn   = mapM codegenTop fns
+        oldast = runLLVM mod modn
 
