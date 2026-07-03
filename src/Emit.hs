@@ -22,6 +22,9 @@ import Codegen
 import JIT
 import qualified AST as S
 
+zero = cons $ C.Float (F.Double 0.0)
+false = zero
+
 getArgName :: S.Expr -> String
 getArgName (S.Var n) = n
 getArgName _ = error "The invalid argument"
@@ -74,6 +77,35 @@ cgen (S.BinOp  op a b) = do
             cb <- cgen b
             f ca cb
         Nothing -> error "No such operator"
+cgen (S.If cond tr fl) = do
+    ifthen <- addBlock "if.then"
+    ifelse <- addBlock "if.else"
+    ifexit <- addBlock "if.exit"
+
+    -- $entry
+    -- ------------
+    cond <- cgen cond
+    test <- fcmp FP.ONE false cond
+    cbr test ifthen ifelse
+
+    -- if.then
+    -- ------------
+    setBlock ifthen
+    trval <- cgen tr
+    br ifexit
+    ifthen <- getBlock
+
+    -- if.else
+    -- ------------
+    setBlock ifelse
+    flval <- cgen fl
+    br ifexit
+    ifelse <- getBlock
+
+    -- if.exit
+    -- ------------
+    setBlock ifexit
+    phi double [(trval, ifthen), (flval, ifelse)]
 
 lt :: AST.Operand -> AST.Operand -> Codegen AST.Operand
 lt a b = do

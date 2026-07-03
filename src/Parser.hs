@@ -55,11 +55,22 @@ call = do
     args <- parens $ commaSep expr
     return $ Call name args
 
+ifthen :: Parser Expr
+ifthen = do
+    reserved "if"
+    cond <- expr
+    reserved "then"
+    tr <- expr
+    reserved "else"
+    fl <- expr
+    return $ If cond tr fl
+
 factor :: Parser Expr
 factor = try floating
       <|> try int
       <|> try call
       <|> try variable
+      <|> ifthen
       <|> (parens expr)
 
 fn :: Parser Expr

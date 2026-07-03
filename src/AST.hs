@@ -10,4 +10,5 @@ data Expr
     | Function Name [Expr] Expr
     | Extern Name [Expr]
     | UnaryOp Name Expr
+    | If Expr Expr Expr
     deriving (Eq, Ord, Show)

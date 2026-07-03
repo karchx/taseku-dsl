@@ -1,48 +1,15 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Codegen 
-    ( Codegen(..)
-    , LLVM (..)
-    , getVar
-    , emptyModule
-    , runLLVM
-    , createBlocks
-    , entryBlockName
-    , execCodegen
-    , setBlock
-    , addBlock
-    , alloca
-    , define
-    , double
-    , external
-    , store
-    , local
-    , assign
-    , fadd
-    , fsub
-    , fmul
-    , fdiv
-    , fcmp
-    , cons
-    , uitofp
-    , call
-    , load
-    , emptyBlock
-    , ret
-    , toSBS
-    , fromSBS
-    , externf) where
+module Codegen where
 
 import Data.List
-import Data.Word (Word32)
 import Data.Function
 import qualified Data.Map as Map
 import qualified Data.ByteString.Short as SBS
 import qualified Data.ByteString.Char8 as B8
 
 import Control.Monad.State
-import Control.Applicative
 
 import LLVM.AST.AddrSpace (AddrSpace(..))
 import qualified LLVM.AST.Linkage as L
@@ -299,4 +266,7 @@ cbr cond tr fl = terminator $ Do $ CondBr cond tr fl []
 
 ret :: Operand -> Codegen (Named Terminator)
 ret val = terminator $ Do $ Ret (Just val) []
+
+phi :: Type -> [(Operand, Name)] -> Codegen Operand
+phi ty incoming = instr $ Phi ty incoming []
 
