@@ -65,12 +65,27 @@ ifthen = do
     fl <- expr
     return $ If cond tr fl
 
+for :: Parser Expr
+for = do
+    reserved "for"
+    var <- identifier
+    reservedOp "="
+    start <- expr
+    reservedOp ","
+    cond <- expr
+    reservedOp ","
+    step <- expr
+    reserved "in"
+    body <- expr
+    return $ For var start cond step body
+
 factor :: Parser Expr
 factor = try floating
       <|> try int
       <|> try call
       <|> try variable
       <|> ifthen
+      <|> for
       <|> (parens expr)
 
 fn :: Parser Expr
