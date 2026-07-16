@@ -5,3 +5,8 @@ double putchard(double x) {
     fflush(stdout);
     return 0;
 }
+
+double printd(double x) {
+    printf("%f\n", x);
+    return 0;
+}

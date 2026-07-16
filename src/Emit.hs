@@ -30,21 +30,24 @@ getArgName (S.Var n) = n
 getArgName _ = error "The invalid argument"
 
 codegenTop :: S.Expr -> LLVM ()
-codegenTop (S.Function name exprArgs body) = do
+codegenTop (S.Function name args body) = do
     define double (fromString name) fnargs bls
     where
-        strArgs = map getArgName exprArgs
-
-        fnargs = toSig (map fromString strArgs)
-
+        fnargs = toSig (map fromString args)
         bls = createBlocks $ execCodegen $ do
             entry <- addBlock entryBlockName
             setBlock entry
-            forM strArgs $ \a -> do
+            forM args $ \a -> do
                 var <- alloca double
                 store var (local (AST.Name (fromString a)))
                 assign a var
             cgen body >>= ret
+
+codegenTop (S.UnaryFunc name args body) =
+    codegenTop $ S.Function ("unary" ++ name) args body
+
+codegenTop (S.BinaryFunc name args body) =
+    codegenTop $ S.Function ("binary" ++ name) args body
 
 codegenTop (S.Extern name exprArgs) = do
     external double (fromString name) fnargs
@@ -71,6 +74,8 @@ cgen (S.BinOp  op a b) = do
             cb <- cgen b
             f ca cb
         Nothing -> error "No such operator"
+cgen (S.UnaryOp op a) = do
+    cgen $ S.Call ("unary" ++ op) [a]
 cgen (S.Float n) = return $ cons $ C.Float (F.Double n)
 cgen(S.Var x) = getVar x >>= load
 cgen(S.Call fn args) = do
@@ -137,6 +142,14 @@ cgen (S.For ivar start cond step body) = do
     -- --------------------------------------
     setBlock forexit
     return zero
+
+cgen (S.BinOp op a b) = do
+    case Map.lookup op binops of
+        Just f -> do
+            ca <- cgen a
+            cb <- cgen b
+            f ca cb
+        Nothing -> cgen (S.Call ("binary" ++ op) [a, b])
 
 lt :: AST.Operand -> AST.Operand -> Codegen AST.Operand
 lt a b = do

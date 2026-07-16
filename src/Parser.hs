@@ -17,7 +17,17 @@ int = do
 floating :: Parser Expr
 floating = Float <$> float
 
+unop = Ex.Prefix (UnaryOp <$> op)
+binop = Ex.Infix (BinOp <$> op) Ex.AssocLeft
+
 binary s assoc = Ex.Infix (reservedOp s >> return (BinOp s)) assoc
+
+op :: Parser String
+op = do
+    whitespace
+    o <- operator
+    whitespace
+    return o
 
 table = [[binary "*"  Ex.AssocLeft,
           binary "/"  Ex.AssocLeft]
@@ -26,7 +36,7 @@ table = [[binary "*"  Ex.AssocLeft,
         ,[binary "<" Ex.AssocLeft]]
 
 expr :: Parser Expr
-expr = Ex.buildExpressionParser table factor
+expr = Ex.buildExpressionParser (table ++ [[unop], [binop]]) factor
 
 variable :: Parser Expr
 variable = Var <$> identifier
@@ -35,7 +45,7 @@ function :: Parser Expr
 function = do
     reserved "func"
     name <- identifier
-    args <- parens $ many variable
+    args <- parens $ many identifier
     body <- expr
     return $ Function name args body
 
@@ -76,6 +86,26 @@ for = do
     body <- expr
     return $ For var start cond step body
 
+unaryFunc :: Parser Expr
+unaryFunc = do
+    reserved "func"
+    reserved "unary"
+    o <- op
+    args <- parens $ many identifier
+    body <- expr
+    return $ UnaryFunc o args body
+
+binaryFunc :: Parser Expr
+binaryFunc = do
+    reserved "func"
+    reserved "binary"
+    o <- op
+    prec <- int
+    args <- parens $ many identifier
+    body <- expr
+    return $ BinaryFunc o args body
+
+
 factor :: Parser Expr
 factor = try floating
       <|> try int
@@ -88,6 +118,7 @@ factor = try floating
 fn :: Parser Expr
 fn = try extern
     <|> try function
+    <|> try binaryFunc
     <|> expr
 
 contents :: Parser a -> Parser a
