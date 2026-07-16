@@ -7,6 +7,7 @@ import Codegen
 import Emit
 
 import Control.Monad.Trans
+import System.Environment
 import System.Console.Haskeline
 
 import qualified LLVM.AST as AST
@@ -23,15 +24,26 @@ process modo source = do
             ast <- codegen modo ex
             return $ Just ast
 
-main :: IO ()
-main = runInputT defaultSettings (loop initModule)
+processFile :: String -> IO (Maybe AST.Module)
+processFile fname = readFile fname >>= process initModule
+
+repl :: IO ()
+repl = runInputT defaultSettings (loop initModule)
     where
     loop modu = do
         minInput <- getInputLine "ready> "
         case minInput of
             Nothing -> outputStrLn "Goodbye."
             Just input -> do
-                modn <- liftIO $ process modu input
-                case modn of
+                result <- liftIO $ process modu input
+                case result of
                     Just modn -> loop modn
                     Nothing -> loop modu
+
+main :: IO ()
+main = do
+    args <- getArgs
+    case args of
+        [] -> repl
+        [fname] -> processFile fname >> return ()
+        _ -> putStrLn "Error: unknow"

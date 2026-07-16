@@ -9,30 +9,27 @@ import qualified Text.Parsec.Token as Tok
 import Lexer
 import AST
 
-binary s assoc = Ex.Infix (reservedOp s >> return (BinOp s)) assoc
-
-table = [[binary "*"  Ex.AssocLeft,
-          binary "/"  Ex.AssocLeft]
-        ,[binary "+"  Ex.AssocLeft,
-          binary "-"  Ex.AssocLeft]]
-
 int :: Parser Expr
 int = do
     n <- integer
     return $ Float (fromInteger n)
 
 floating :: Parser Expr
-floating = do
-    n <- float
-    return $ Float n
+floating = Float <$> float
+
+binary s assoc = Ex.Infix (reservedOp s >> return (BinOp s)) assoc
+
+table = [[binary "*"  Ex.AssocLeft,
+          binary "/"  Ex.AssocLeft]
+        ,[binary "+"  Ex.AssocLeft,
+          binary "-"  Ex.AssocLeft]
+        ,[binary "<" Ex.AssocLeft]]
 
 expr :: Parser Expr
 expr = Ex.buildExpressionParser table factor
 
 variable :: Parser Expr
-variable = do
-    var <- identifier
-    return $ Var var
+variable = Var <$> identifier
 
 function :: Parser Expr
 function = do

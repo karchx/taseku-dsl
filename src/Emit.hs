@@ -64,12 +64,6 @@ toSig :: [SBS.ShortByteString] -> [(AST.Type, AST.Name)]
 toSig = map (\x -> (double, AST.Name x))
 
 cgen :: S.Expr -> Codegen AST.Operand
-cgen (S.Float n) = return $ cons $ C.Float (F.Double n)
-cgen(S.Var x) = getVar x >>= load
-cgen(S.Call fn args) = do
-    largs <- mapM cgen args
-    let argTypes = replicate (length args) double
-    call (externf (AST.Name (fromString fn)) argTypes) largs
 cgen (S.BinOp  op a b) = do
     case Map.lookup op binops of
         Just f -> do
@@ -77,6 +71,12 @@ cgen (S.BinOp  op a b) = do
             cb <- cgen b
             f ca cb
         Nothing -> error "No such operator"
+cgen (S.Float n) = return $ cons $ C.Float (F.Double n)
+cgen(S.Var x) = getVar x >>= load
+cgen(S.Call fn args) = do
+    largs <- mapM cgen args
+    let argTypes = replicate (length args) double
+    call (externf (AST.Name (fromString fn)) argTypes) largs
 cgen (S.If cond tr fl) = do
     ifthen <- addBlock "if.then"
     ifelse <- addBlock "if.else"

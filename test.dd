@@ -1,0 +1,14 @@
+func fib(x)
+    if x < 3 then
+        1
+    else
+        fib(x-1)+fib(x-2);
+
+extern putchard(char);
+
+func printstar(n)
+  for i = 1, i < n, 1.0 in
+    putchard(42);
+
+printstar(100);
+
